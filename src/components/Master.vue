@@ -1,7 +1,7 @@
 <template lang="pug">
-  b-card(no-body :class="{isMaster:!isSlave,isPending}" @click="trigger")
+  b-card(no-body :class="{isTransmitting}" @click="trigger")
     b-card-header {{no}} {{mode}} {{timer.time}}
-      i.fa.fa-compass.ml-1(:class="{disabled:!enableDemo}" @click="enableDemo=!enableDemo")/ 
+      i.fa.fa-compass.ml-1(v-if="enableDemo")/ 
     b-card-body {{regs}}
     b-card-footer
       code {{bus}}
@@ -12,11 +12,11 @@
 import Vue from 'vue'
 
 export default {
-  name: 'Device',
+  name: 'Master',
   props: ['no','bus'],
   watch:{
     bus(val){
-      // this.isTransmitting = Boolean(val);
+      this.isTransmitting = Boolean(val);
       if(!val) this.onSilence();
     },
     enableDemo(val){
@@ -40,8 +40,7 @@ export default {
       enableDemo:false,
       regs:[0,0,0,0,0],
       timer:{time:null,interval:null},
-      valueHasChanged:false,
-      isPending:false
+      valueHasChanged:false
     }
   },
   created(){
@@ -72,7 +71,7 @@ export default {
       this.regs[reg] = val;
     },
     onSilence(){
-      // console.log('silence');
+      console.log('silence');
       if(this.isPending) this.emit();
     },
     emit(){
@@ -85,11 +84,7 @@ export default {
       }
     },
     sendToBus(){
-      this.isSlave = false
-      this.$emit('tx',`0:B:${this.no}:CRC`,()=>{
-        this.isSlave = true  
-      });
-      
+      this.$emit('tx',`0:B:${this.no}`);
     },
   }
 }
@@ -99,17 +94,7 @@ export default {
 .device
   border 1px solid #ccc
   
-.isMaster, .isTransmitting
+.isTransmitting
   border-color #f00
-  color #f00
-  
-  
-.isPending
-  background-color #f00 !important
-  
-.disabled
-  opacity 0.5
-  
-  
 
 </style>

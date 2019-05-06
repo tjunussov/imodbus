@@ -12,14 +12,26 @@ doctype html
       | iMODBUS
 
   b-container
-    b-card-group.main(deck)
-      device(:no="c" :key="c" :bus="bus" v-for="c in count" @setBus="setBus")
+    b-row.mb-4
+      b-col
+        b-card.main(header="0 Main Master")
+          code {{regs}}
+    b-row.mb-4
+      b-col
+        b-card
+          code {{bus}}
+    b-row
+      b-col
+        b-card-group.slaves(deck)
+          device(:no="c" :key="c" :bus="bus" v-for="c in count" @tx="tx")
+    
 
 </template>
 
 <script>
 
 import Device from '@/components/Device'
+import Master from '@/components/Master'
 
 export default {
   name: 'app',
@@ -28,7 +40,8 @@ export default {
       count:5,
       bus:null,
       interval:null,
-      tm:null
+      tm:null,
+      regs:{}
     }
   },
   created(){
@@ -38,13 +51,20 @@ export default {
     
   },
   methods:{
-    setBus(v){
+    tx(v,callback){
       window.clearTimeout(this.tm)
       this.bus = v;
-      window.setTimeout(()=>{this.bus = null},1000)
+      this.syncBus();
+      window.setTimeout(()=>{this.bus = null;callback()},100)
+    },
+    syncBus(){
+      if(this.bus){
+        var m = this.bus.split(":");
+        this.regs[m[2]] = m[0];
+      }
     }
   },
-  components:{Device}
+  components:{Device,Master}
 }
 </script>
 
@@ -61,10 +81,22 @@ export default {
 body
   padding-top 3.5rem
   
-.card
-  flex 0 0 auto !important
-  margin-left 0 !important
-  width 11rem
+.card 
+  min-height 4.5rem
+  
+.main.card
+  background-color #ffc
+  
+  
+.slaves .card
+  // flex 0 0 auto !important
+  // width 12rem
+  // margin 0 1rem 1rem 0 !important
+  position relative
+  cursor pointer
+  background-color transparent !important
+  transition  background 0.2s ease-out, color 0.2s ease-out, border-color 0.5s ease-out !important
+    
   
   .card-footer 
     height 3rem
